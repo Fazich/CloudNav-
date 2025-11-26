@@ -1,71 +1,49 @@
-import { Category, LinkItem, WebDavConfig } from "../types";
-import { Buffer } from 'buffer';
 
-// Ensure Buffer is available globally if needed, though modern browsers have btoa
-const encodeAuth = (user: string, pass: string) => {
-    return btoa(`${user}:${pass}`);
-};
+import { Category, LinkItem, WebDavConfig } from "../types";
+
+// Helper to call our Cloudflare Proxy
+// This solves the CORS issue by delegating the request to the backend
+const callWebDavProxy = async (operation: 'check' | 'upload' | 'download', config: WebDavConfig, payload?: any) => {
+    try {
+        const response = await fetch('/api/webdav', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                operation,
+                config,
+                payload
+            })
+        });
+        
+        if (!response.ok) {
+            console.error(`WebDAV Proxy Error: ${response.status}`);
+            return null;
+        }
+        
+        return await response.json();
+    } catch (e) {
+        console.error("WebDAV Proxy Network Error", e);
+        return null;
+    }
+}
 
 export const checkWebDavConnection = async (config: WebDavConfig): Promise<boolean> => {
-    try {
-        const response = await fetch(config.url, {
-            method: 'PROPFIND', // Standard WebDAV check
-            headers: {
-                'Authorization': `Basic ${encodeAuth(config.username, config.password)}`,
-                'Depth': '0'
-            }
-        });
-        // 207 Multi-Status is typical for WebDAV, 200 OK is also fine
-        return response.status === 207 || response.status === 200;
-    } catch (error) {
-        console.error("WebDAV Connection Check Failed:", error);
-        return false;
-    }
+    if (!config.url || !config.username || !config.password) return false;
+    const result = await callWebDavProxy('check', config);
+    return result?.success === true;
 };
 
 export const uploadBackup = async (config: WebDavConfig, data: { links: LinkItem[], categories: Category[] }): Promise<boolean> => {
-    try {
-        const jsonString = JSON.stringify(data, null, 2);
-        const filename = 'cloudnav_backup.json';
-        const targetUrl = config.url.endsWith('/') ? `${config.url}${filename}` : `${config.url}/${filename}`;
-
-        const response = await fetch(targetUrl, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `Basic ${encodeAuth(config.username, config.password)}`,
-                'Content-Type': 'application/json'
-            },
-            body: jsonString
-        });
-
-        return response.ok || response.status === 201 || response.status === 204;
-    } catch (error) {
-        console.error("WebDAV Upload Failed:", error);
-        return false;
-    }
+    const result = await callWebDavProxy('upload', config, data);
+    return result?.success === true;
 };
 
 export const downloadBackup = async (config: WebDavConfig): Promise<{ links: LinkItem[], categories: Category[] } | null> => {
-    try {
-        const filename = 'cloudnav_backup.json';
-        const targetUrl = config.url.endsWith('/') ? `${config.url}${filename}` : `${config.url}/${filename}`;
-
-        const response = await fetch(targetUrl, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Basic ${encodeAuth(config.username, config.password)}`
-            }
-        });
-
-        if (!response.ok) return null;
-
-        const data = await response.json();
-        if (Array.isArray(data.links) && Array.isArray(data.categories)) {
-            return data as { links: LinkItem[], categories: Category[] };
-        }
-        return null;
-    } catch (error) {
-        console.error("WebDAV Download Failed:", error);
-        return null;
+    const result = await callWebDavProxy('download', config);
+    
+    // Check if the result looks like valid backup data
+    if (result && Array.isArray(result.links) && Array.isArray(result.categories)) {
+        return result as { links: LinkItem[], categories: Category[] };
     }
+    return null;
 };
