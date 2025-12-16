@@ -233,7 +233,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     const json: any = {
         manifest_version: 3,
         name: localSiteSettings.navTitle || "CloudNav Assistant",
-        version: "1.7", // Bump version to force refresh
+        version: "2.0", // Major version bump
         description: "CloudNav 侧边栏导航与书签助手",
         permissions: ["activeTab", "scripting", "sidePanel", "storage", "favicon"],
         background: {
@@ -257,19 +257,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
             },
             "description": "打开保存弹窗 (Open Save Popup)"
           },
+          // 使用 115 插件完全一致的原生命令方案
           "_execute_side_panel": {
             "suggested_key": {
               "default": "Ctrl+Shift+E",
               "mac": "Command+Shift+E"
             },
             "description": "打开/关闭侧边栏 (Toggle Side Panel)"
-          },
-          "open_sidebar_manual": {
-            "suggested_key": {
-              "default": "Ctrl+Shift+L",
-              "mac": "Command+Shift+L"
-            },
-            "description": "打开侧边栏 (备用/Backup Open)"
           }
         }
     };
@@ -288,22 +282,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
   const extBackgroundJs = `// background.js - CloudNav Assistant
 
-// 监听备用快捷键命令
-chrome.commands.onCommand.addListener((command) => {
-  if (command === 'open_sidebar_manual') {
-    // 获取当前窗口
-    chrome.windows.getCurrent((window) => {
-      if (window && window.id) {
-        // 使用 open API (注意：此 API 不支持 close/toggle)
-        chrome.sidePanel.open({ windowId: window.id })
-          .catch((error) => console.error("Failed to open side panel:", error));
-      }
-    });
-  }
-});
+// 使用 Chrome 原生命令 _execute_side_panel 处理开关，无需额外逻辑。
+// 这确保了最原生、最流畅的体验（与 115 插件一致）。
 
 chrome.runtime.onInstalled.addListener(() => {
-  console.log('CloudNav Extension Installed');
+  console.log('CloudNav Extension Installed (Native Mode)');
+  
+  // 确保侧边栏不会在点击图标时打开，而是由 _execute_side_panel 或快捷键控制
+  // 点击图标应打开保存弹窗 (Popup)
+  chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false })
+    .catch((error) => console.error("Panel behavior set failed:", error));
 });
 `;
 
@@ -1144,7 +1132,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                                 <ol className="list-decimal list-inside text-sm text-slate-600 dark:text-slate-400 space-y-2 leading-relaxed">
                                     <li>在电脑上新建文件夹 <code className="bg-white dark:bg-slate-900 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 font-mono text-xs">CloudNav-Ext</code>。</li>
                                     <li><strong>[重要]</strong> 将下方图标保存为 <code className="bg-white dark:bg-slate-900 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 font-mono text-xs">icon.png</code>。</li>
-                                    <li>在文件夹中创建以下 6 个文件。<span className="text-red-500 dark:text-red-400 font-bold"> 请务必下载所有文件并覆盖旧版本。</span></li>
+                                    <li>在文件夹中创建以下 6 个文件。<span className="text-red-500 dark:text-red-400 font-bold"> 请务必点击下方按钮一键下载并覆盖旧文件。</span></li>
                                     <li>
                                         打开浏览器扩展管理页面 
                                         {browserType === 'chrome' ? (
@@ -1153,8 +1141,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                                             <> (Firefox: <code className="select-all bg-white dark:bg-slate-900 px-1 rounded">about:debugging</code>)</>
                                         )}。
                                     </li>
-                                    <li>点击 "<strong>加载已解压的扩展程序</strong>"，选择该文件夹。</li>
-                                    {browserType === 'chrome' && <li className="text-red-600 dark:text-red-400 font-bold">重要提示：如果之前已安装，必须先点击 "移除" 按钮卸载旧版，然后重新加载文件夹。仅点击 "刷新" 按钮无法更新快捷键注册。</li>}
+                                    <li><strong>[必须]</strong> 先点击旧版 CloudNav 插件的 "<strong>移除</strong>" 按钮。</li>
+                                    <li><strong>[必须]</strong> 重新点击 "<strong>加载已解压的扩展程序</strong>" 选择文件夹。</li>
+                                    <li><strong>[最后]</strong> 前往 <code className="select-all bg-white dark:bg-slate-900 px-1 rounded">chrome://extensions/shortcuts</code> 绑定快捷键，此时应能看到标准选项。</li>
                                 </ol>
                                 
                                 <div className="mt-4 mb-4">
@@ -1170,11 +1159,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                                 
                                 <div className="p-3 bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200 rounded border border-amber-200 dark:border-amber-900/50 text-sm space-y-2">
                                     <div className="font-bold flex items-center gap-2"><Keyboard size={16}/> 快捷键配置:</div>
-                                    <p>如果 <strong>"打开/关闭侧边栏"</strong> 选项未出现，请尝试使用 <strong>"打开侧边栏 (备用)"</strong>。</p>
-                                    <ul className="list-disc list-inside space-y-1 mt-1 text-xs">
-                                        <li><strong>Toggle Side Panel (Ctrl+Shift+E)</strong>: 原生切换 (可能不显示)。</li>
-                                        <li><strong>Backup Open (Ctrl+Shift+L)</strong>: 强制打开 (一定显示)。</li>
-                                    </ul>
+                                    <p>新版已采用原生 (Native) 模式，与 115 插件机制完全一致。</p>
+                                    <p className="text-xs font-semibold">请务必移除旧插件后重新加载，否则快捷键配置不会更新。</p>
                                 </div>
                             </div>
 
