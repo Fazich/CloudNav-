@@ -1018,7 +1018,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                                 <ol className="list-decimal list-inside text-sm text-slate-600 dark:text-slate-400 space-y-2 leading-relaxed">
                                     <li>在电脑上新建文件夹 <code className="bg-white dark:bg-slate-900 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 font-mono text-xs">CloudNav-Pro</code>。</li>
                                     <li><strong>[重要]</strong> 将下方图标保存为 <code className="bg-white dark:bg-slate-900 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 font-mono text-xs">icon.png</code>。</li>
-                                    <li>在文件夹中创建以下文件。<span className="text-red-500 dark:text-red-400 font-bold"> 请务必点击下方按钮一键下载并覆盖旧文件。</span></li>
+                                    <li>获取插件代码文件：
+                                        <ul className="list-disc list-inside ml-4 mt-1 space-y-1 text-slate-500">
+                                            <li><strong>方式一 (推荐)：</strong>点击下方的 <span className="text-blue-600 dark:text-blue-400 font-bold">"📦 一键下载所有文件"</span> 按钮，解压到该文件夹。</li>
+                                            <li><strong>方式二 (备用)：</strong>分别点击下方代码块的 <Download size={12} className="inline"/> 按钮下载或复制 <code className="bg-white dark:bg-slate-900 px-1 rounded">manifest.json</code>, <code className="bg-white dark:bg-slate-900 px-1 rounded">background.js</code>, <code className="bg-white dark:bg-slate-900 px-1 rounded">sidebar.html</code>, <code className="bg-white dark:bg-slate-900 px-1 rounded">sidebar.js</code> 到该文件夹。</li>
+                                        </ul>
+                                    </li>
                                     <li>
                                         打开浏览器扩展管理页面 
                                         {browserType === 'chrome' ? (
@@ -1028,10 +1033,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                                         )}。
                                     </li>
                                     <li className="text-blue-600 font-bold">操作关键点：</li>
-                                    <li>1. 移除旧插件，重启浏览器。</li>
-                                    <li>2. 加载新版插件。</li>
-                                    <li>3. 前往快捷键设置页 <code className="select-all bg-white dark:bg-slate-900 px-1 rounded">chrome://extensions/shortcuts</code>。</li>
-                                    <li>4. <strong className="text-red-500">关键：</strong>您现在只会看到“打开/关闭 CloudNav 侧边栏”一个选项。请将它绑定为常用快捷键 (如 Ctrl+Shift+E)。</li>
+                                    <li>1. 开启右上角的 "开发者模式" (Chrome)。</li>
+                                    <li>2. 点击 "加载已解压的扩展程序"，选择包含上述文件的文件夹。</li>
+                                    <li>3. (可选) 前往 <code className="select-all bg-white dark:bg-slate-900 px-1 rounded">chrome://extensions/shortcuts</code> 设置快捷键 (如 Ctrl+Shift+E)。</li>
                                 </ol>
                                 
                                 <div className="mt-4 mb-4">
@@ -1043,11 +1047,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                                         <Package size={20} />
                                         {isZipping ? '打包中...' : '📦 一键下载所有文件 (v7.0 Pro)'}
                                     </button>
-                                </div>
-                                
-                                <div className="p-3 bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200 rounded border border-amber-200 dark:border-amber-900/50 text-sm space-y-2">
-                                    <div className="font-bold flex items-center gap-2"><Keyboard size={16}/> 115 同款方案:</div>
-                                    <p>此版本使用了 115 扩展的通信架构：后台脚本通过长连接检测侧边栏状态，并发送指令让侧边栏自行关闭。这是最稳定、兼容性最好的方案。</p>
                                 </div>
                             </div>
 
