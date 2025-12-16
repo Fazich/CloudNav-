@@ -1096,7 +1096,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                                     <div className="font-bold flex items-center gap-2"><Keyboard size={16}/> 快捷键 Ctrl+Shift+E 设置指南:</div>
                                     <p>如果按下快捷键打开的是“保存弹窗”而不是“侧边栏”，请前往 Chrome 快捷键设置 (<code className="bg-white/50 dark:bg-black/20 px-1 rounded">chrome://extensions/shortcuts</code>) 检查。</p>
                                     <p>务必将快捷键绑定到 <strong>"Open Side Panel (打开侧边栏)"</strong> 这一项，而不是 "激活扩展程序"。</p>
-                                    <div className="text-xs text-slate-500 mt-2">提示：现在您也可以在网页上 <strong>右键 -> 打开侧边栏</strong>。</div>
+                                    <div className="text-xs text-slate-500 mt-2">提示：现在您也可以在网页上 <strong>右键 &rarr; 打开侧边栏</strong>。</div>
                                 </div>
                             </div>
 
